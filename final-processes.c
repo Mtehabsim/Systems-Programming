@@ -12,12 +12,22 @@
 #include <node/openssl/sha.h>
 #include "common.h"
 
+#define ARRAY_SIZE 1000
+#define MAX_HASHMAP_SIZE 1024
+#define HASH_FILE "hash_data.txt"
+#define SHA256_DIGEST_LENGTH 32
+
 
 void fill_array_with_random(int *array, int size) {
     srand(time(NULL));
     for (int i = 0; i < size; i++) {
         array[i] = rand() % ARRAY_SIZE;
     }
+}
+
+
+void write_to_pipe(int *array, int size, int pipe_fd) {
+    write(pipe_fd, array, size * sizeof(int));
 }
 
 void read_array_from_file(int *arr, int size, char *filename) {
@@ -97,35 +107,55 @@ int main(int argc, char *argv[]) {
             exit(0);
         } else {
             waitpid(pid, NULL, WUNTRACED);
-
+            int pipes[4][2];
+		    for (int i = 0; i < 4; i++) {
+			if (pipe(pipes[i]) == -1) {
+			    perror("Pipe creation failed");
+			    return 1;
+			}
+            }
             pid_t pid_sort = fork();
             
             if (pid_sort == 0) {
                 clock_t start, end;
                 double cpu_time_used;
                 read_array_from_file(array, ARRAY_SIZE, "notsortedarray.txt");
+                
                 start = clock();
+                
+            pid_t pid;
+            // int array[ARRAY_SIZE];
+            
                 if (fork() == 0) {
+                    // for(int i =0;i<ARRAY_SIZE; i++){
+                    //     printf("%d ", array[i]);
+                    // }
                     quicksort(array, 0, ARRAY_SIZE - 1);
-                    write_to_file_if_empty(array, ARRAY_SIZE, "sortedarray.txt");
+                    close(pipes[0][0]);
+                    
+            	    write_to_pipe(array, ARRAY_SIZE, pipes[0][1]);
+            	     
                     printf("Quicksort finished\n");
                     exit(0);
                 }
                 if (fork() == 0) {
                     insertionSort(array, ARRAY_SIZE);
-                    write_to_file_if_empty(array, ARRAY_SIZE, "sortedarray.txt");
+                    close(pipes[1][0]);
+            	    write_to_pipe(array, ARRAY_SIZE, pipes[1][1]);
                     printf("Insertion sort finished\n");
                     exit(0);
                 }
                 if (fork() == 0) {
                     Merge_Sort(array, 0, ARRAY_SIZE - 1);
-                    write_to_file_if_empty(array, ARRAY_SIZE, "sortedarray.txt");
+                    close(pipes[2][0]);
+            	    write_to_pipe(array, ARRAY_SIZE, pipes[2][1]);
                     printf("Merge sort finished\n");
                     exit(0);
                 }
                 if (fork() == 0) {
                     bubblesort(array);
-                    write_to_file_if_empty(array, ARRAY_SIZE, "sortedarray.txt");
+                    // close(pipes[3][0]);
+            	    write_to_pipe(array, ARRAY_SIZE, pipes[3][1]);
                     printf("Bubble sort finished\n");
                     exit(0);
                 }
@@ -140,24 +170,30 @@ int main(int argc, char *argv[]) {
                 clock_t start, end;
                 double cpu_time_used;
                 start = clock();
-                read_array_from_file(array, ARRAY_SIZE, "sortedarray.txt");
                 
                 if (fork() == 0) {
+                    read(pipes[0][0], array, ARRAY_SIZE * sizeof(int));
+                    // for(int i =0;i<ARRAY_SIZE; i++){
+                    //     printf("%d ", array[i]);
+                    // }
                     int index = binary_search(array, 0, ARRAY_SIZE - 1, target);
                     printf("Binary search FINISHED %d\n", index);
                     exit(0);
                 }
                 if (fork() == 0) {
+                    read(pipes[1][0], array, ARRAY_SIZE * sizeof(int));
                     int index = fibonacci_search(array, ARRAY_SIZE, target);
                     printf("Fibonacci search FINISHED %d\n", index);
                     exit(0);
                 }
                 if (fork() == 0) {
+                    read(pipes[2][0], array, ARRAY_SIZE* sizeof(int));
                     int index = jump_search(array, ARRAY_SIZE, target);
                     printf("Jump search FINISHED %d\n", index);
                     exit(0);
                 }
                 if (fork() == 0) {
+                    read(pipes[3][0], array, ARRAY_SIZE* sizeof(int));
                     int index = ternary_search(array,0, ARRAY_SIZE, target);
                     printf("Ternary search FINISHED %d\n", index);
                     exit(0);
@@ -166,10 +202,6 @@ int main(int argc, char *argv[]) {
                 end = clock();
                 cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
                 printf("Searching processes took %f seconds to execute\n", cpu_time_used);
-                printf("HERE \n");
-                if (remove("sortedarray.txt") != 0) {
-                    perror("Error deleting sortedarray.txt");
-                }
                 if (remove("notsortedarray.txt") != 0) {
                     perror("Error deleting notsortedarray.txt");
                 }

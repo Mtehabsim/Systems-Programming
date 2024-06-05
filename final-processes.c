@@ -82,7 +82,6 @@ int main(int argc, char *argv[]) {
     pid_t firstpid = fork();
 
     if(firstpid==0){
-        char *filename = "rrr(1).json";
         clock_t start, end;
         double cpu_time_used;
         start = clock();
@@ -90,7 +89,6 @@ int main(int argc, char *argv[]) {
         end = clock();
         cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
         printf("Hashing process took %f seconds to execute \n", cpu_time_used);
-        wait(NULL);
     }
     else{
         pid_t pid = fork();

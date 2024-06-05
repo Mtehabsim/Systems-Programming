@@ -100,6 +100,9 @@ int main(int argc, char *argv[]) {
             double cpu_time_used;
             start = clock();
             fill_array_with_random(array, ARRAY_SIZE);
+            printf("Array not sorted : ");
+            for(int i =0; i< ARRAY_SIZE; i++)
+            printf("%d ", array[i]);
             write_to_file_if_empty(array, ARRAY_SIZE, "notsortedarray.txt");
             end = clock();
             cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
@@ -117,46 +120,66 @@ int main(int argc, char *argv[]) {
             pid_t pid_sort = fork();
             
             if (pid_sort == 0) {
+                read_array_from_file(array, ARRAY_SIZE, "notsortedarray.txt");
                 clock_t start, end;
                 double cpu_time_used;
-                read_array_from_file(array, ARRAY_SIZE, "notsortedarray.txt");
-                
                 start = clock();
                 
             pid_t pid;
-            // int array[ARRAY_SIZE];
             
                 if (fork() == 0) {
-                    // for(int i =0;i<ARRAY_SIZE; i++){
-                    //     printf("%d ", array[i]);
-                    // }
+                    clock_t newstart, newend;
+                    double new_cpu_time_used;
+                    newstart = clock();
+                    
                     quicksort(array, 0, ARRAY_SIZE - 1);
                     close(pipes[0][0]);
                     
             	    write_to_pipe(array, ARRAY_SIZE, pipes[0][1]);
             	     
-                    printf("Quicksort finished\n");
+                    
+                    newend = clock();
+                    printf("Quicksort finished Took %f \n", ((double) (newend - newstart)) / CLOCKS_PER_SEC);
                     exit(0);
                 }
                 if (fork() == 0) {
+                    clock_t newstart, newend;
+                    double new_cpu_time_used;
+                    newstart = clock();
+                    
                     insertionSort(array, ARRAY_SIZE);
                     close(pipes[1][0]);
             	    write_to_pipe(array, ARRAY_SIZE, pipes[1][1]);
-                    printf("Insertion sort finished\n");
+                    
+                    
+                    newend = clock();
+                    printf("Insertion sort finished Took %f \n", ((double) (newend - newstart)) / CLOCKS_PER_SEC);
                     exit(0);
                 }
                 if (fork() == 0) {
+                    clock_t newstart, newend;
+                    double new_cpu_time_used;
+                    newstart = clock();
+                    
                     Merge_Sort(array, 0, ARRAY_SIZE - 1);
                     close(pipes[2][0]);
             	    write_to_pipe(array, ARRAY_SIZE, pipes[2][1]);
-                    printf("Merge sort finished\n");
+                    
+                    newend = clock();
+                    printf("Merge sort finished Took %f \n", ((double) (newend - newstart)) / CLOCKS_PER_SEC);
                     exit(0);
                 }
                 if (fork() == 0) {
+                    clock_t newstart, newend;
+                    double new_cpu_time_used;
+                    newstart = clock();
+                    
                     bubblesort(array);
-                    // close(pipes[3][0]);
+
+                    close(pipes[3][0]);
             	    write_to_pipe(array, ARRAY_SIZE, pipes[3][1]);
-                    printf("Bubble sort finished\n");
+                    newend = clock();
+                    printf("Bubble sort finished Took %f \n", ((double) (newend - newstart)) / CLOCKS_PER_SEC);
                     exit(0);
                 }
                 while(wait(NULL) > 0);
@@ -173,26 +196,54 @@ int main(int argc, char *argv[]) {
                 
                 if (fork() == 0) {
                     read(pipes[0][0], array, ARRAY_SIZE * sizeof(int));
+                    printf("Array sorted : ");
+                    for(int i =0; i< ARRAY_SIZE; i++)
+                    printf("%d ", array[i]);
+                    printf("\n");
+
+                    clock_t newstart, newend;
+                    double new_cpu_time_used;
+                    newstart = clock();
                     int index = binary_search(array, 0, ARRAY_SIZE - 1, target);
                     printf("Binary search FINISHED target found %d times\n", count_frequency(array, ARRAY_SIZE, index, target));
+                    newend = clock();
+                    printf("Took %f \n", ((double) (newend - newstart)) / CLOCKS_PER_SEC);
+                    
                     exit(0);
                 }
                 if (fork() == 0) {
                     read(pipes[1][0], array, ARRAY_SIZE * sizeof(int));
+                    clock_t newstart, newend;
+                    double new_cpu_time_used;
+                    newstart = clock();
+                    
                     int index = fibonacci_search(array, ARRAY_SIZE, target);
                     printf("Fibonacci search FINISHED target found %d times\n", count_frequency(array, ARRAY_SIZE, index, target));
+                    newend = clock();
+                    printf("Took %f \n", ((double) (newend - newstart)) / CLOCKS_PER_SEC);
                     exit(0);
                 }
                 if (fork() == 0) {
                     read(pipes[2][0], array, ARRAY_SIZE* sizeof(int));
+                    clock_t newstart, newend;
+                    double new_cpu_time_used;
+                    newstart = clock();
+                    
                     int index = jump_search(array, ARRAY_SIZE, target);
                     printf("Jump search FINISHED target found %d times\n", count_frequency(array, ARRAY_SIZE, index, target));
+                    newend = clock();
+                    printf("Took %f \n", ((double) (newend - newstart)) / CLOCKS_PER_SEC);
                     exit(0);
                 }
                 if (fork() == 0) {
                     read(pipes[3][0], array, ARRAY_SIZE* sizeof(int));
+                    clock_t newstart, newend;
+                    double new_cpu_time_used;
+                    newstart = clock();
                     int index = ternary_search(array,0, ARRAY_SIZE, target);
                     printf("Ternary search FINISHED target found %d times\n", count_frequency(array, ARRAY_SIZE, index, target));
+                    newend = clock();
+                    printf("Took %f \n", ((double) (newend - newstart)) / CLOCKS_PER_SEC);
                     exit(0);
                 }
                 while(wait(NULL) > 0);

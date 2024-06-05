@@ -12,7 +12,7 @@
 #include <pthread.h>
 #include <node/openssl/sha.h>
 
-#define ARRAY_SIZE 100000
+#define ARRAY_SIZE 1000
 #define MAX_HASHMAP_SIZE 1024
 #define HASH_FILE "hash_data.txt"
 #define SHA256_DIGEST_LENGTH 32
@@ -306,57 +306,135 @@ void Merge_Sort(int arr[], int left, int right) {
     }
 }
 
+int count_frequency(int arr[], int n, int index, int x) {
+    if (index == -1) return 0;
+
+    int count = 1;
+    int left = index - 1;
+    int right = index + 1;
+
+    while (left >= 0 && arr[left] == x) {
+        count++;
+        left--;
+    }
+
+    while (right < n && arr[right] == x) {
+        count++;
+        right++;
+    }
+
+    return count;
+}
+
 void* jump_search_thread(void* args) {
+    clock_t start, end;
+    double cpu_time_used;
+    
+    start = clock();
     SearchThreadData* data = (SearchThreadData*)args;
     int index = jump_search(data->array, ARRAY_SIZE, data->target);
-    printf("Jump search FINISHED %d\n", index);
+    end = clock();
+    
+    cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
+    printf("Jump search FINISHED target found %d times. Time taken: %f seconds\n", count_frequency(data->array, ARRAY_SIZE, index, data->target), cpu_time_used);
     pthread_exit(NULL);
 }
 
 void* ternary_search_thread(void* args) {
+    clock_t start, end;
+    double cpu_time_used;
+    
+    start = clock();
     SearchThreadData* data = (SearchThreadData*)args;
     int index = ternary_search(data->array, 0, ARRAY_SIZE - 1, data->target);
-    printf("Ternary search FINISHED %d\n", index);
+    end = clock();
+    
+    cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
+    printf("Ternary search FINISHED target found %d times. Time taken: %f seconds\n", count_frequency(data->array, ARRAY_SIZE, index, data->target), cpu_time_used);
     pthread_exit(NULL);
 }
 
 void* quicksort_thread(void* args) {
+    clock_t start, end;
+    double cpu_time_used;
+    
+    start = clock();
     int* array = (int*)args;
-    
     quicksort(array, 0, ARRAY_SIZE - 1);
+    end = clock();
     
+    cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
+    printf("Quicksort FINISHED. Time taken: %f seconds\n", cpu_time_used);
     pthread_exit(NULL);
 }
 
 void* insertion_sort_thread(void* args) {
+    clock_t start, end;
+    double cpu_time_used;
+    
+    start = clock();
     int* array = (int*)args;
     insertionSort(array, ARRAY_SIZE);
+    end = clock();
+    
+    cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
+    printf("Insertion sort FINISHED. Time taken: %f seconds\n", cpu_time_used);
     pthread_exit(NULL);
 }
 
 void* merge_sort_thread(void* args) {
+    clock_t start, end;
+    double cpu_time_used;
+    
+    start = clock();
     int* array = (int*)args;
     Merge_Sort(array, 0, ARRAY_SIZE - 1);
+    end = clock();
+    
+    cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
+    printf("Merge sort FINISHED. Time taken: %f seconds\n", cpu_time_used);
     pthread_exit(NULL);
 }
 
 void* bubble_sort_thread(void* args) {
+    clock_t start, end;
+    double cpu_time_used;
+    
+    start = clock();
     int* array = (int*)args;
     bubblesort(array);
+    end = clock();
+    
+    cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
+    printf("Bubble sort FINISHED. Time taken: %f seconds\n", cpu_time_used);
     pthread_exit(NULL);
 }
 
 void* binary_search_thread(void* args) {
+    clock_t start, end;
+    double cpu_time_used;
+    
+    start = clock();
     SearchThreadData* data = (SearchThreadData*)args;
     int index = binary_search(data->array, 0, ARRAY_SIZE - 1, data->target);
-    printf("Binary search FINISHED %d\n", index);
+    end = clock();
+    
+    cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
+    printf("Binary search FINISHED target found %d times. Time taken: %f seconds\n", count_frequency(data->array, ARRAY_SIZE, index, data->target), cpu_time_used);
     pthread_exit(NULL);
 }
 
 void* fibonacci_search_thread(void* args) {
+    clock_t start, end;
+    double cpu_time_used;
+    
+    start = clock();
     SearchThreadData* data = (SearchThreadData*)args;
     int index = fibonacci_search(data->array, ARRAY_SIZE, data->target);
-    printf("Fibonacci search FINISHED %d\n", index);
+    end = clock();
+    
+    cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
+    printf("Fibonacci search FINISHED target found %d times. Time taken: %f seconds\n", count_frequency(data->array, ARRAY_SIZE, index, data->target), cpu_time_used);
     pthread_exit(NULL);
 }
 

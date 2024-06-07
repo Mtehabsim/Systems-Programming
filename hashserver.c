@@ -17,7 +17,55 @@
 #define HASH_LENGTH 64
 #define BUFFER_SIZE 1024
 
-void *hash_handler(void *arg);
+void *hash_handler(void *socket_desc) {
+    int sock = *(int *)socket_desc;
+    free(socket_desc);
+    char filename[256] = {0};
+    
+    if (recv(sock, filename, sizeof(filename) - 1, 0) <= 0) {
+        perror("Receive filename failed");
+        close(sock);
+        return NULL;
+    }
+    printf("File name is %s\n", filename);
+    
+    char file_path[512];
+    snprintf(file_path, sizeof(file_path), "%s/%s", DIRECTORY_NAME, filename);
+    mkdir(DIRECTORY_NAME, 0777);
+
+    int file_fd = open(file_path, O_CREAT | O_WRONLY, 0644);
+    if (file_fd < 0) {
+        perror("File open failed");
+        close(sock);
+        return NULL;
+    }
+
+    char buffer[BUFFER_SIZE];
+    int bytes_received;
+    while ((bytes_received = recv(sock, buffer, sizeof(buffer), 0)) > 0) {
+        if (write(file_fd, buffer, bytes_received) != bytes_received) {
+            perror("File write failed");
+            close(file_fd);
+            close(sock);
+            return NULL;
+        }
+    }
+
+    if (bytes_received < 0) {
+        perror("Receive file content failed");
+    }
+
+    close(file_fd);
+
+    char *hash = hash_file(file_path);
+    if (hash) {
+        send(sock, hash, HASH_LENGTH, 0);
+        free(hash);
+    }
+
+    close(sock);
+    return NULL;
+}
 
 int main() {
     int sockfd, newsockfd;
@@ -65,56 +113,4 @@ int main() {
 
     close(sockfd);
     return 0;
-}
-
-void *hash_handler(void *socket_desc) {
-    int sock = *(int *)socket_desc;
-    free(socket_desc);
-    char filename[256] = {0};
-    
-    if (recv(sock, filename, sizeof(filename) - 1, 0) <= 0) {
-        perror("Receive filename failed");
-        close(sock);
-        return NULL;
-    }
-    printf("File name is %s\n", filename);
-    
-    char file_path[512];
-    snprintf(file_path, sizeof(file_path), "%s/%s", DIRECTORY_NAME, filename);
-    mkdir(DIRECTORY_NAME, 0777);
-
-    int file_fd = open(file_path, O_CREAT | O_WRONLY, 0644);
-    if (file_fd < 0) {
-        perror("File open failed");
-        close(sock);
-        return NULL;
-    }
-
-    // Receive file content
-    char buffer[BUFFER_SIZE];
-    int bytes_received;
-    while ((bytes_received = recv(sock, buffer, sizeof(buffer), 0)) > 0) {
-        if (write(file_fd, buffer, bytes_received) != bytes_received) {
-            perror("File write failed");
-            close(file_fd);
-            close(sock);
-            return NULL;
-        }
-    }
-
-    if (bytes_received < 0) {
-        perror("Receive file content failed");
-    }
-
-    close(file_fd);
-
-    // Calculate hash
-    char *hash = hash_file(file_path);
-    if (hash) {
-        send(sock, hash, HASH_LENGTH, 0);
-        free(hash);
-    }
-
-    close(sock);
-    return NULL;
 }

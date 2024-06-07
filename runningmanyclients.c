@@ -14,7 +14,6 @@ int main() {
     pid_t pid;
     int i;
 
-    // Run client with param 2 and Name.txt three times
     for (i = 0; i < 3; i++) {
         pid = fork();
         if (pid < 0) {
@@ -22,12 +21,10 @@ int main() {
             exit(EXIT_FAILURE);
         }
         if (pid == 0) {
-            // In child process
             execute_program("./client", "2", "Name.txt");
         }
     }
 
-    // Run client with param 1 three times
     for (i = 0; i < 3; i++) {
         pid = fork();
         if (pid < 0) {
@@ -35,12 +32,10 @@ int main() {
             exit(EXIT_FAILURE);
         }
         if (pid == 0) {
-            // In child process
             execute_program("./client", "1", NULL);
         }
     }
 
-    // In parent process: wait for all child processes to complete
     for (i = 0; i < 6; i++) {
         wait(NULL);
     }

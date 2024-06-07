@@ -8,7 +8,7 @@ int main() {
     const char *file_name = "example.txt";
     const char *data = "test test 1 2 3 \n";
 
-    file_desc = open(file_name, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
+    file_desc = open(file_name, O_WRONLY | O_CREAT );
     if (file_desc < 0) {
         perror("Error opening file");
         return 1;

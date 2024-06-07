@@ -10,18 +10,15 @@ int main() {
 
     file_desc = open(file_name, O_WRONLY | O_CREAT );
     if (file_desc < 0) {
-        perror("Error opening file");
         return 1;
     }
 
     if (write(file_desc, data, strlen(data)) < 0) {
-        perror("Error writing to file");
         close(file_desc);
         return 1;
     }
 
     if (close(file_desc) < 0) {
-        perror("Error closing file");
         return 1;
     }
 

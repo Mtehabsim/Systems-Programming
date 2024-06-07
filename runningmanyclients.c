@@ -9,12 +9,9 @@ void execute_program(const char *program, const char *arg1, const char *arg2) {
     perror("execl failed");
     exit(EXIT_FAILURE);
 }
-
 int main() {
     pid_t pid;
-    int i;
-
-    for (i = 0; i < 3; i++) {
+    for (int i = 0; i < 3; i++) {
         pid = fork();
         if (pid < 0) {
             perror("fork failed");
@@ -24,7 +21,6 @@ int main() {
             execute_program("./client", "2", "Name.txt");
         }
     }
-
     for (i = 0; i < 3; i++) {
         pid = fork();
         if (pid < 0) {
@@ -35,11 +31,8 @@ int main() {
             execute_program("./client", "1", NULL);
         }
     }
-
     for (i = 0; i < 6; i++) {
         wait(NULL);
     }
-
-    printf("All instances of client have completed\n");
     return 0;
 }

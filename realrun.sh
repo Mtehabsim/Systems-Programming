@@ -1,4 +1,9 @@
 #!/bin/bash
+
+gcc sortserver.c -o sortserver -lssl -lcrypto
+gcc hashserver.c -o hashserver -lssl -lcrypto
+gcc combinedclient.c -o client -lssl -lcrypto
+
 ./sortserver &
 ./hashserver &
 
